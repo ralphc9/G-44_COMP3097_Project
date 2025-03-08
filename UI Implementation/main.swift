@@ -1,5 +1,7 @@
 import SwiftUI
 
+//G-44 UI Implementation
+
 @main
 struct SmartListApp: App {
     var body: some Scene {
@@ -41,6 +43,100 @@ struct HomeScreen: View {
     }
 }
 
+//Shopping list detail screen - Gio Lavilla
+
+struct ShoppingListDetailsScreen: View {
+    var listName: String
+    @State private var items: [String] = ["Apple - $2", "Bread - $1.5"]
+    @State private var showAddItemScreen = false
+
+    var body: some View {
+        List {
+            ForEach(items, id: \.self) { item in
+                Text(item)
+            }
+            .onDelete { indexSet in
+                items.remove(atOffsets: indexSet)
+            }
+        }
+        .navigationTitle(listName)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: { showAddItemScreen = true }) {
+                    Image(systemName: "plus")
+                }
+            }
+        }
+        .sheet(isPresented: $showAddItemScreen) {
+            AddItemScreen(items: $items)
+        }
+    }
+}
+
+//Add shopping list - Gio Lavilla
+struct AddShoppingListScreen: View {
+    @Binding var shoppingLists: [String]
+    @State private var newListName = ""
+    @Environment(\.presentationMode) var presentationMode
+
+    var body: some View {
+        NavigationView {
+            Form {
+                TextField("List Name", text: $newListName)
+            }
+            .navigationTitle("New Shopping List")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        if !newListName.isEmpty {
+                            shoppingLists.append(newListName)
+                        }
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+//Add item - Gio Lavilla
+struct AddItemScreen: View {
+    @Binding var items: [String]
+    @State private var itemName = ""
+    @State private var itemPrice = ""
+    @Environment(\.presentationMode) var presentationMode
+
+    var body: some View {
+        NavigationView {
+            Form {
+                TextField("Item Name", text: $itemName)
+                TextField("Price ($)", text: $itemPrice)
+                    .keyboardType(.decimalPad)
+            }
+            .navigationTitle("New Item")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        if !itemName.isEmpty, let price = Double(itemPrice) {
+                            items.append("\(itemName) - $\(price)")
+                        }
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
 
 //- TAX CONFIGURATION SCREEN - Ralph Canlas
 struct TaxConfigScreen: View {
