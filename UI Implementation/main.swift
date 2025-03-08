@@ -1,20 +1,23 @@
-Import SwiftUI
+import SwiftUI
 
-struct ContentView: View {
-    var body: some View {
-        NavigationView {
+@main
+struct SmartListApp: App {
+    var body: some Scene {
+        WindowGroup {
             HomeScreen()
         }
     }
 }
 
+//- HOME SCREEN - Ralph Canlas
 struct HomeScreen: View {
-    @State private var shoppingLists = ["Grocery List", "Household Items", "Electronics"]
-    
+    @State private var shoppingLists: [String] = ["Grocery List", "Household Items"]
+    @State private var showAddListScreen = false
+
     var body: some View {
-        VStack {
+        NavigationView {
             List {
-                ForEach(shoppingLists, id: \..self) { list in
+                ForEach(shoppingLists, id: \.self) { list in
                     NavigationLink(destination: ShoppingListDetailsScreen(listName: list)) {
                         Text(list)
                     }
@@ -23,70 +26,83 @@ struct HomeScreen: View {
                     shoppingLists.remove(atOffsets: indexSet)
                 }
             }
-            Button("Add New List") {
-                shoppingLists.append("New List")
+            .navigationTitle("SmartList")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showAddListScreen = true }) {
+                        Image(systemName: "plus")
+                    }
+                }
             }
-            .padding()
-        }
-        .navigationTitle("SmartShop")
-        .toolbar {
-            NavigationLink(destination: TaxSettingsScreen()) {
-                Image(systemName: "gear")
+            .sheet(isPresented: $showAddListScreen) {
+                AddShoppingListScreen(shoppingLists: $shoppingLists)
             }
         }
     }
 }
 
-struct ShoppingListDetailsScreen: View {
-    var listName: String
-    @State private var items = ["Apple - $2", "Bread - $1.5", "Soap - $3"]
-    
+
+//- TAX CONFIGURATION SCREEN - Ralph Canlas
+struct TaxConfigScreen: View {
+    @State private var taxCategories: [String: Double] = ["Food": 5.0, "Medication": 0.0]
+    @State private var showAddTaxScreen = false
+
     var body: some View {
-        VStack {
+        NavigationView {
             List {
-                ForEach(items, id: \..self) { item in
-                    Text(item)
-                }
-                .onDelete { indexSet in
-                    items.remove(atOffsets: indexSet)
+                ForEach(taxCategories.sorted(by: { $0.key < $1.key }), id: \.key) { category, rate in
+                    HStack {
+                        Text(category)
+                        Spacer()
+                        Text("\(rate, specifier: "%.1f")%")
+                    }
                 }
             }
-            Button("Add Item") {
-                items.append("New Item - $0")
+            .navigationTitle("Tax & Settings")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showAddTaxScreen = true }) {
+                        Image(systemName: "plus")
+                    }
+                }
             }
-            .padding()
+            .sheet(isPresented: $showAddTaxScreen) {
+                AddTaxCategoryScreen(taxCategories: $taxCategories)
+            }
         }
-        .navigationTitle(listName)
     }
 }
 
-struct TaxSettingsScreen: View {
-    @State private var taxCategories = ["Food - 5%", "Medication - 0%", "Cleaning - 13%"]
-    
+//- ADD TAX CATEGORY SCREEN - Ralph Canlas
+struct AddTaxCategoryScreen: View {
+    @Binding var taxCategories: [String: Double]
+    @State private var categoryName = ""
+    @State private var taxRate = ""
+    @Environment(\.presentationMode) var presentationMode
+
     var body: some View {
-        VStack {
-            List {
-                ForEach(taxCategories, id: \..self) { category in
-                    Text(category)
+        NavigationView {
+            Form {
+                TextField("Category Name", text: $categoryName)
+                TextField("Tax Rate (%)", text: $taxRate)
+                    .keyboardType(.decimalPad)
+            }
+            .navigationTitle("New Tax Category")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        presentationMode.wrappedValue.dismiss()
+                    }
                 }
-                .onDelete { indexSet in
-                    taxCategories.remove(atOffsets: indexSet)
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        if let rate = Double(taxRate), !categoryName.isEmpty {
+                            taxCategories[categoryName] = rate
+                        }
+                        presentationMode.wrappedValue.dismiss()
+                    }
                 }
             }
-            Button("Add New Category") {
-                taxCategories.append("New Category - 0%")
-            }
-            .padding()
-        }
-        .navigationTitle("Tax & Settings")
-    }
-}
-
-@main
-struct SmartShopApp: App {
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
         }
     }
 }
