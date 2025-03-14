@@ -2,7 +2,7 @@
 //  ShoppingList+CoreDataProperties.swift
 //  SmartList
 //
-//  Created by Lyka Calinsuay on 2025-03-12.
+//  Created by Ralph Canlas on 2025-03-12.
 //
 //
 
