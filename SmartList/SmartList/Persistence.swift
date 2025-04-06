@@ -24,5 +24,3 @@ struct PersistenceController {
         return container.viewContext
     }
 }
-
-
