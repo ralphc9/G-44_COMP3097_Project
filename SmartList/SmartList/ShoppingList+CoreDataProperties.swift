@@ -2,13 +2,12 @@
 //  ShoppingList+CoreDataProperties.swift
 //  SmartList
 //
-//  Created by Ralph Canlas on 2025-03-12.
+//  Created by Ralph Canlas on 05-04-2025.
 //
 //
 
 import Foundation
 import CoreData
-
 
 extension ShoppingList {
 
@@ -17,6 +16,8 @@ extension ShoppingList {
     }
 
     @NSManaged public var name: String?
+    @NSManaged public var budget: Double
+    @NSManaged public var taxRate: Double
     @NSManaged public var items: NSSet?
 
 }
