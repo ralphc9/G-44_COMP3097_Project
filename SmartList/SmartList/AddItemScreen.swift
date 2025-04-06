@@ -20,16 +20,16 @@ struct AddItemScreen: View {
             Form {
                 TextField("Item Name", text: $name)
                 TextField("Price", text: $price)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
 
                 Button("Add Item") {
-                    let newItem = Item(context: viewContext)
+                    let newItem = NSEntityDescription.insertNewObject(forEntityName: "Item", into: viewContext) as! Item
                     newItem.name = name
                     newItem.price = Double(price) ?? 0.0
-                    list.addToItems(newItem)
+                    newItem.list = list
                     saveContext()
                     presentationMode.wrappedValue.dismiss()
                 }
+                .disabled(name.isEmpty || price.isEmpty)
             }
             .navigationTitle("Add Item")
         }
@@ -39,5 +39,3 @@ struct AddItemScreen: View {
         do { try viewContext.save() } catch { print("Save failed: \(error)") }
     }
 }
-
-

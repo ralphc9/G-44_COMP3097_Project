@@ -10,47 +10,39 @@ import CoreData
 
 struct TaxSettingsScreen: View {
     @Environment(\.managedObjectContext) private var viewContext
-    @FetchRequest(
-        entity: Category.entity(),
-        sortDescriptors: [NSSortDescriptor(keyPath: \Category.name, ascending: true)]
-    ) var categories: FetchedResults<Category>
-    
-    @State private var showAddCategory = false
+    @Environment(\.presentationMode) var presentationMode
+    @AppStorage("globalTaxRate") private var globalTaxRate: Double = 0.0
+    @State private var taxRateString: String = ""
     
     var body: some View {
         NavigationView {
-            List {
-                ForEach(categories) { category in
-                    HStack {
-                        Text(category.name ?? "Unnamed Category")
-                        Spacer()
-                        Text("\(category.taxRate, specifier: "%.2f")%")
+            Form {
+                Section(header: Text("Global Tax Rate")) {
+                    TextField("Tax Rate (%)", text: $taxRateString)
+                    
+                    Text("Current Tax Rate: \(globalTaxRate, specifier: "%.2f")%")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Button("Save Tax Rate") {
+                        if let newRate = Double(taxRateString) {
+                            globalTaxRate = newRate
+                            presentationMode.wrappedValue.dismiss()
+                        }
                     }
+                    .disabled(Double(taxRateString) == nil)
                 }
-                .onDelete(perform: deleteCategory)
+                
+                Section(header: Text("Information")) {
+                    Text("The tax rate will be applied to all shopping lists unless a list has its own specific tax rate.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
             .navigationTitle("Tax Settings")
-            .toolbar {
-                Button(action: { showAddCategory.toggle() }) {
-                    Label("Add Category", systemImage: "plus")
-                }
-            }
-            .sheet(isPresented: $showAddCategory) {
-                AddCategoryScreen()
+            .onAppear {
+                taxRateString = String(format: "%.2f", globalTaxRate)
             }
         }
-    }
-    
-    private func deleteCategory(offsets: IndexSet) {
-        for index in offsets {
-            let category = categories[index]
-            viewContext.delete(category)
-        }
-        saveContext()
-    }
-    
-    private func saveContext() {
-        do { try viewContext.save() } catch { print("Save failed: \(error)") }
     }
 }
-

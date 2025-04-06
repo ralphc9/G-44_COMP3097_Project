@@ -28,5 +28,3 @@ struct ProgressBar: View {
         .frame(height: 8)
     }
 }
-
-

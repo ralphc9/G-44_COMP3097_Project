@@ -16,15 +16,25 @@ struct HomeScreen: View {
     ) var shoppingLists: FetchedResults<ShoppingList>
     
     @State private var showAddList = false
+    @State private var showTaxSettings = false
     
     var body: some View {
         NavigationView {
             List {
                 ForEach(shoppingLists) { list in
                     NavigationLink(destination: ShoppingListDetailsScreen(list: list)) {
-                        VStack(alignment: .leading) {
+                        VStack(alignment: .leading, spacing: 4) {
                             Text(list.name ?? "Untitled")
                                 .font(.headline)
+                            
+                            HStack {
+                                Text("Budget: $\(list.budget, specifier: "%.2f")")
+                                    .font(.caption)
+                                Spacer()
+                                Text("$\(list.totalCost, specifier: "%.2f")")
+                                    .font(.caption)
+                                    .fontWeight(.bold)
+                            }
                             
                             // Updated ProgressBar with dynamic values
                             ProgressBar(value: calculateProgress(for: list))
@@ -35,12 +45,23 @@ struct HomeScreen: View {
             }
             .navigationTitle("Shopping Lists")
             .toolbar {
-                Button(action: { showAddList.toggle() }) {
-                    Label("Add List", systemImage: "plus")
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showAddList.toggle() }) {
+                        Label("Add List", systemImage: "plus")
+                    }
+                }
+                
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: { showTaxSettings.toggle() }) {
+                        Label("Tax Settings", systemImage: "percent")
+                    }
                 }
             }
             .sheet(isPresented: $showAddList) {
                 AddShoppingListScreen()
+            }
+            .sheet(isPresented: $showTaxSettings) {
+                TaxSettingsScreen()
             }
         }
     }
@@ -64,22 +85,13 @@ struct HomeScreen: View {
     // Helper function to calculate progress
     private func calculateProgress(for list: ShoppingList) -> Double {
         // Calculate total cost from items
-        let totalCost = list.itemsArray.reduce(0.0) { $0 + ($1.price ?? 0.0) }
-        
-        // Assume budget is a fixed value, or you could store this in Core Data
-        let budget = list.budget ?? 0.0
+        let totalCost = list.totalCost
         
         // Avoid division by zero
-        guard budget > 0 else {
+        guard list.budget > 0 else {
             return 0
         }
         
-        return totalCost / budget
+        return min(totalCost / list.budget, 1.0)
     }
 }
-
-
-
-
-
-
